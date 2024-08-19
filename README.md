@@ -23,6 +23,6 @@ A simple reverse proxy written in Rust.
 
 - Write tests
 - Add support for weighted load balancing
-- Add basic logging
+- ~~Add basic logging~~
 - Add basic metrics
 - Benchmark

@@ -1,18 +1,28 @@
+use colored::Colorize;
 use hyper::{server::conn::http1, service::service_fn, Response};
 use hyper_util::rt::TokioIo;
 use std::collections::VecDeque;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::SystemTime;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::Mutex;
 
 mod config;
 use config::Config;
 
+const DATE_FORMAT_STR: &'static str = "%Y-%m-%d][%H:%M:%S";
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load configuration
     let config = Config::load("stadio.yaml")?;
+
+    if config.backends.len() == 0 {
+        println!("{}", "No backends configured".red());
+        return Ok(());
+    }
+
     let backends = Arc::new(Mutex::new(VecDeque::from(config.backends)));
 
     let in_addr: SocketAddr = ([127, 0, 0, 1], 3001).into();
@@ -20,6 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind(in_addr).await?;
 
     println!("Listening on http://{}", in_addr);
+    println!("----------------------------------------");
 
     loop {
         let (stream, _) = listener.accept().await?;
@@ -45,6 +56,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
                 let uri = uri_string.parse().unwrap();
                 *req.uri_mut() = uri;
+
+                println!("Sending to {}", uri_string.green());
 
                 // Add appropriate headers
                 let headers = req.headers_mut();
