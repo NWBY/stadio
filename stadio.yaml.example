@@ -1,0 +1,2 @@
+backends:
+  - "http://localhost:80"
